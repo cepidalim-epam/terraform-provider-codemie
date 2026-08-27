@@ -2,48 +2,14 @@
 
 Terraform provider for managing CodeMie assistants, workflows, and skills through the CodeMie REST API.
 
-## Repository & GitLab CI/CD
-
-- **Remote URL:** `git@git.epam.com:ismaildalim_cepic/codemie-terraform-provider.git`
-- **Registry:** EPAM GitLab Terraform Provider Registry (`git.epam.com`)
-
-### Remote Setup
-
-To push this repository to EPAM GitLab:
-
-```bash
-git remote add origin git@git.epam.com:ismaildalim_cepic/codemie-terraform-provider.git
-git branch -M main
-git push -u origin main
-```
+- **GitHub Repository:** `https://github.com/cepidalim-epam/terraform-provider-codemie`
+- **Terraform Registry:** `cepidalim-epam/codemie`
 
 ---
 
-## Consuming the Provider from GitLab Registry
+## Consuming the Provider
 
-### 1. Authenticate Terraform with EPAM GitLab
-
-#### For Local Development (`~/.terraformrc`)
-Add the following block to `~/.terraformrc` (or `%APPDATA%\terraform.rc` on Windows):
-
-```hcl
-credentials "git.epam.com" {
-  token = "<YOUR_GITLAB_ACCESS_TOKEN>"
-}
-```
-
-#### For CI/CD Pipelines
-Export the `TF_TOKEN_<hostname>` environment variable in your consumer pipeline:
-
-```bash
-export TF_TOKEN_git_epam_com="${CI_JOB_TOKEN}"
-# Or using a group/project access token
-export TF_TOKEN_git_epam_com="${GITLAB_ACCESS_TOKEN}"
-```
-
-### 2. Provider Declaration
-
-In your downstream Terraform project (`versions.tf`):
+In your Terraform project (`versions.tf` or `main.tf`):
 
 ```hcl
 terraform {
@@ -51,7 +17,7 @@ terraform {
 
   required_providers {
     codemie = {
-      source  = "git.epam.com/ismaildalim_cepic/codemie"
+      source  = "cepidalim-epam/codemie"
       version = "~> 0.1.0"
     }
   }
@@ -140,7 +106,7 @@ For local testing without querying the remote registry:
 ```hcl
 provider_installation {
   dev_overrides {
-    "git.epam.com/ismaildalim_cepic/codemie" = "/path/to/codemie-terraform-provider"
+    "cepidalim-epam/codemie" = "/path/to/codemie-terraform-provider"
   }
   direct {}
 }
