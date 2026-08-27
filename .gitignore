@@ -1,0 +1,39 @@
+# Binaries & build artifacts
+*.exe
+*.exe~
+*.dll
+*.so
+*.dylib
+bin/
+dist/
+build/
+terraform-provider-codemie
+terraform-provider-codemie_*
+*.zip
+*.tar.gz
+*.SHA256SUMS*
+
+# Terraform local testing & state
+.terraform/
+.terraform.lock.hcl
+*.tfstate
+*.tfstate.*
+*.tfvars
+*.tfvars.json
+override.tf
+override.tf.json
+*_override.tf
+*_override.tf.json
+local-registry/
+
+# OS and Editor files
+.DS_Store
+.idea/
+.vscode/
+*.swp
+*~
+
+# Test & coverage artifacts
+coverage.out
+coverage.html
+profile.out

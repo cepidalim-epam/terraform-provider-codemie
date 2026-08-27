@@ -1,0 +1,154 @@
+image: golang:1.24-alpine
+
+variables:
+  PROVIDER_NAME: "codemie"
+  GOPATH: "$CI_PROJECT_DIR/.go"
+  CGO_ENABLED: "0"
+
+# Global caching for Go dependencies
+cache:
+  key: "${CI_COMMIT_REF_SLUG}"
+  paths:
+    - .go/pkg/mod/
+
+stages:
+  - lint
+  - test
+  - build
+  - publish
+  - release
+
+# Common rule presets
+.rules-mr-and-main:
+  rules:
+    - if: '$CI_PIPELINE_SOURCE == "merge_request_event"'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+    - if: '$CI_COMMIT_TAG'
+
+.rules-publish-only:
+  rules:
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH == $CI_DEFAULT_BRANCH'
+
+before_script:
+  - apk add --no-cache bash curl git zip jq tar coreutils
+
+# ------------------------------------------------------------------------------
+# Stage: Lint & Code Quality
+# ------------------------------------------------------------------------------
+lint:
+  stage: lint
+  extends: .rules-mr-and-main
+  script:
+    - echo "==> Checking Go formatting and static analysis..."
+    - test -z "$(gofmt -l main.go internal)" || (echo "Unformatted files found:" && gofmt -l main.go internal && exit 1)
+    - go vet ./...
+
+# ------------------------------------------------------------------------------
+# Stage: Test
+# ------------------------------------------------------------------------------
+test:
+  stage: test
+  extends: .rules-mr-and-main
+  script:
+    - echo "==> Running unit and framework tests..."
+    - go test -v -coverprofile=coverage.out ./...
+    - go tool cover -func=coverage.out
+  artifacts:
+    expire_in: 7 days
+    paths:
+      - coverage.out
+    reports:
+      coverage_report:
+        coverage_format: cobertura
+        path: coverage.out
+
+# ------------------------------------------------------------------------------
+# Stage: Build Multi-Architecture Packages & Modules
+# ------------------------------------------------------------------------------
+build:
+  stage: build
+  extends: .rules-mr-and-main
+  script:
+    - |
+      # Determine SemVer version
+      if [ -n "$CI_COMMIT_TAG" ]; then
+        VERSION="${CI_COMMIT_TAG#v}"
+      elif [ -f "VERSION" ]; then
+        VERSION="$(cat VERSION | tr -d '[:space:]')"
+      else
+        VERSION="0.1.0"
+      fi
+      echo "==> Building Terraform Provider & Modules version: ${VERSION}"
+      chmod +x ./scripts/package-provider.sh
+      ./scripts/package-provider.sh "${VERSION}"
+      echo "${VERSION}" > dist/VERSION
+  artifacts:
+    name: "terraform-provider-${PROVIDER_NAME}-${CI_COMMIT_REF_NAME}"
+    expire_in: 14 days
+    paths:
+      - dist/
+
+# ------------------------------------------------------------------------------
+# Stage: Publish to GitLab Terraform Module & Package Registry
+# ------------------------------------------------------------------------------
+publish-gitlab-registry:
+  stage: publish
+  extends: .rules-publish-only
+  dependencies:
+    - build
+  script:
+    - |
+      VERSION="$(cat dist/VERSION)"
+      echo "==> Publishing provider & modules ${PROVIDER_NAME} v${VERSION} to GitLab Package Registry..."
+      chmod +x ./scripts/publish-gitlab.sh
+      ./scripts/publish-gitlab.sh "${VERSION}"
+
+# ------------------------------------------------------------------------------
+# Stage: Create GitLab Release (for Tags)
+# ------------------------------------------------------------------------------
+create-release:
+  stage: release
+  image: registry.gitlab.com/gitlab-org/release-cli:latest
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  dependencies:
+    - build
+  before_script: []
+  script:
+    - |
+      VERSION="$(cat dist/VERSION)"
+      echo "Creating GitLab Release for tag ${CI_COMMIT_TAG} (v${VERSION})..."
+  release:
+    name: 'Release $CI_COMMIT_TAG'
+    tag_name: '$CI_COMMIT_TAG'
+    description: |
+      ## CodeMie Terraform Provider & Modules Release $CI_COMMIT_TAG
+
+      ### Consuming via GitLab Terraform Module Registry
+      ```hcl
+      module "assistant" {
+        source  = "${CI_SERVER_HOST}/${CI_PROJECT_PATH}/codemie/assistant"
+        version = "${CI_COMMIT_TAG#v}"
+
+        name          = "My Assistant"
+        system_prompt = "You are a helpful assistant."
+      }
+      ```
+
+      ### Direct Download Assets
+      Find binary zip packages and SHA256SUMS in the Package Registry.
+    assets:
+      links:
+        - name: 'SHA256SUMS'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_SHA256SUMS'
+        - name: 'Linux AMD64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_linux_amd64.zip'
+        - name: 'Linux ARM64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_linux_arm64.zip'
+        - name: 'macOS ARM64 (Apple Silicon)'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_darwin_arm64.zip'
+        - name: 'macOS AMD64 (Intel)'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_darwin_amd64.zip'
+        - name: 'Windows AMD64'
+          url: '${CI_API_V4_URL}/projects/${CI_PROJECT_ID}/packages/generic/terraform-provider-${PROVIDER_NAME}/${CI_COMMIT_TAG#v}/terraform-provider-${PROVIDER_NAME}_${CI_COMMIT_TAG#v}_windows_amd64.zip'

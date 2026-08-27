@@ -1,0 +1,92 @@
+package client
+
+import (
+	"context"
+	"encoding/json"
+	"net/url"
+)
+
+// SkillCreateRequest mirrors the OpenAPI SkillCreateRequest schema used by
+// POST /v1/skills.
+type SkillCreateRequest struct {
+	Name                    string          `json:"name"`
+	Description             string          `json:"description"`
+	Content                 string          `json:"content"`
+	Project                 string          `json:"project"`
+	Visibility              *string         `json:"visibility,omitempty"`
+	Categories              []string        `json:"categories,omitempty"`
+	Toolkits                json.RawMessage `json:"toolkits,omitempty"`
+	MCPServers              json.RawMessage `json:"mcp_servers,omitempty"`
+	CompanionFiles          json.RawMessage `json:"companion_files,omitempty"`
+	EnabledBuiltinSubagents []string        `json:"enabled_builtin_subagents,omitempty"`
+}
+
+// SkillUpdateRequest mirrors the OpenAPI SkillUpdateRequest schema used by
+// PUT /v1/skills/{id}. All fields are optional/nullable on the API side.
+type SkillUpdateRequest struct {
+	Name                    *string         `json:"name,omitempty"`
+	Description             *string         `json:"description,omitempty"`
+	Content                 *string         `json:"content,omitempty"`
+	Project                 *string         `json:"project,omitempty"`
+	Visibility              *string         `json:"visibility,omitempty"`
+	Categories              []string        `json:"categories,omitempty"`
+	Toolkits                json.RawMessage `json:"toolkits,omitempty"`
+	MCPServers              json.RawMessage `json:"mcp_servers,omitempty"`
+	CompanionFiles          json.RawMessage `json:"companion_files,omitempty"`
+	EnabledBuiltinSubagents []string        `json:"enabled_builtin_subagents,omitempty"`
+}
+
+// SkillDetailResponse mirrors the OpenAPI SkillDetailResponse schema
+// returned by create/get/update skill endpoints.
+type SkillDetailResponse struct {
+	ID                      string          `json:"id"`
+	Name                    string          `json:"name"`
+	Description             string          `json:"description"`
+	Content                 string          `json:"content"`
+	Project                 string          `json:"project"`
+	DisplayName             *string         `json:"display_name"`
+	Visibility              string          `json:"visibility"`
+	Categories              CategoryList    `json:"categories"`
+	Toolkits                json.RawMessage `json:"toolkits,omitempty"`
+	MCPServers              json.RawMessage `json:"mcp_servers,omitempty"`
+	CompanionFiles          json.RawMessage `json:"companion_files,omitempty"`
+	EnabledBuiltinSubagents []string        `json:"enabled_builtin_subagents"`
+}
+
+const skillsPath = "/v1/skills"
+
+// CreateSkill calls POST /v1/skills.
+func (c *Client) CreateSkill(ctx context.Context, req *SkillCreateRequest) (*SkillDetailResponse, error) {
+	var out SkillDetailResponse
+	if err := c.doJSON(ctx, "POST", skillsPath, req, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// GetSkill calls GET /v1/skills/{id}.
+func (c *Client) GetSkill(ctx context.Context, id string) (*SkillDetailResponse, error) {
+	var out SkillDetailResponse
+	if err := c.doJSON(ctx, "GET", skillsPath+"/"+url.PathEscape(id), nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// UpdateSkill calls PUT /v1/skills/{id}.
+func (c *Client) UpdateSkill(ctx context.Context, id string, req *SkillUpdateRequest) (*SkillDetailResponse, error) {
+	var out SkillDetailResponse
+	if err := c.doJSON(ctx, "PUT", skillsPath+"/"+url.PathEscape(id), req, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
+}
+
+// DeleteSkill calls DELETE /v1/skills/{id}. The API returns 204 on success.
+func (c *Client) DeleteSkill(ctx context.Context, id string) error {
+	err := c.doJSON(ctx, "DELETE", skillsPath+"/"+url.PathEscape(id), nil, nil)
+	if err != nil && IsNotFound(err) {
+		return nil
+	}
+	return err
+}
