@@ -3,7 +3,6 @@ package client
 import (
 	"context"
 	"encoding/json"
-	"fmt"
 	"net/url"
 )
 
@@ -57,7 +56,6 @@ type SkillDetailResponse struct {
 type CompanionFileContentResponse struct {
 	Content  string `json:"content"`
 	Path     string `json:"path"`
-	Size     int    `json:"size"`
 	MimeType string `json:"mime_type"`
 	Encoding string `json:"encoding"`
 }
@@ -127,8 +125,7 @@ func (c *Client) DeleteSkill(ctx context.Context, id string) error {
 // GetSkillCompanionFileContent calls GET /v1/skills/{id}/companion_files?path={path}.
 func (c *Client) GetSkillCompanionFileContent(ctx context.Context, id string, path string) (*CompanionFileContentResponse, error) {
 	var out CompanionFileContentResponse
-	endpoint := fmt.Sprintf("%s/%s/companion_files?path=%s", skillsPath, url.PathEscape(id), url.QueryEscape(path))
-	if err := c.doJSON(ctx, "GET", endpoint, nil, &out); err != nil {
+	if err := c.doJSON(ctx, "GET", skillsPath+"/"+url.PathEscape(id)+"/companion-files/content?path="+path, nil, &out); err != nil {
 		return nil, err
 	}
 	return &out, nil
