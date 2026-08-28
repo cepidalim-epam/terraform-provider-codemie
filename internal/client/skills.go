@@ -3,6 +3,7 @@ package client
 import (
 	"context"
 	"encoding/json"
+	"fmt"
 	"net/url"
 )
 
@@ -53,6 +54,14 @@ type SkillDetailResponse struct {
 	EnabledBuiltinSubagents []string        `json:"enabled_builtin_subagents"`
 }
 
+type CompanionFileContentResponse struct {
+	Content  string `json:"content"`
+	Path     string `json:"path"`
+	Size     int    `json:"size"`
+	MimeType string `json:"mime_type"`
+	Encoding string `json:"encoding"`
+}
+
 const skillsPath = "/v1/skills"
 
 // CreateSkill calls POST /v1/skills.
@@ -70,6 +79,30 @@ func (c *Client) GetSkill(ctx context.Context, id string) (*SkillDetailResponse,
 	if err := c.doJSON(ctx, "GET", skillsPath+"/"+url.PathEscape(id), nil, &out); err != nil {
 		return nil, err
 	}
+
+	if len(out.CompanionFiles) > 0 && string(out.CompanionFiles) != "null" {
+		var files []CompanionFileContentResponse
+		if err := json.Unmarshal(out.CompanionFiles, &files); err == nil && len(files) > 0 {
+			detailedFiles := make([]CompanionFileContentResponse, len(files))
+			for i, f := range files {
+				if f.Path != "" {
+					fileContent, err := c.GetSkillCompanionFileContent(ctx, id, f.Path)
+					if err != nil {
+						return nil, err
+					}
+					detailedFiles[i] = *fileContent
+				} else {
+					detailedFiles[i] = f
+				}
+			}
+			raw, err := json.Marshal(detailedFiles)
+			if err != nil {
+				return nil, err
+			}
+			out.CompanionFiles = raw
+		}
+	}
+
 	return &out, nil
 }
 
@@ -89,4 +122,14 @@ func (c *Client) DeleteSkill(ctx context.Context, id string) error {
 		return nil
 	}
 	return err
+}
+
+// GetSkillCompanionFileContent calls GET /v1/skills/{id}/companion_files?path={path}.
+func (c *Client) GetSkillCompanionFileContent(ctx context.Context, id string, path string) (*CompanionFileContentResponse, error) {
+	var out CompanionFileContentResponse
+	endpoint := fmt.Sprintf("%s/%s/companion_files?path=%s", skillsPath, url.PathEscape(id), url.QueryEscape(path))
+	if err := c.doJSON(ctx, "GET", endpoint, nil, &out); err != nil {
+		return nil, err
+	}
+	return &out, nil
 }
