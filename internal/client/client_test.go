@@ -86,7 +86,7 @@ func TestGetSkillCompanionFilesHydrated(t *testing.T) {
 			},
 		})
 	})
-	mux.HandleFunc("/v1/skills/skill-with-files/companion_files", func(w http.ResponseWriter, r *http.Request) {
+	mux.HandleFunc("/v1/skills/skill-with-files/companion-files/content", func(w http.ResponseWriter, r *http.Request) {
 		if path := r.URL.Query().Get("path"); path != "subdir/helper.py" {
 			t.Errorf("unexpected path query param: %q", path)
 		}
