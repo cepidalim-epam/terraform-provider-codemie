@@ -94,7 +94,6 @@ func TestGetSkillCompanionFilesHydrated(t *testing.T) {
 		_ = json.NewEncoder(w).Encode(CompanionFileContentResponse{
 			Path:     "subdir/helper.py",
 			Content:  "print('hello companion')",
-			Size:     42,
 			MimeType: "text/x-python",
 			Encoding: "utf-8",
 		})
