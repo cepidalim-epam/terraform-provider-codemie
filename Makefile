@@ -1,5 +1,5 @@
 BINARY=terraform-provider-codemie
-VERSION?=0.1.2
+VERSION?=0.2.1
 OS_ARCH?=darwin_arm64
 
 default: build

@@ -67,12 +67,12 @@ func (r *workflowResource) Schema(_ context.Context, _ resource.SchemaRequest, r
 		"icon_url":              schema.StringAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
 		"shared":                schema.BoolAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.Bool{boolplanmodifier.UseStateForUnknown()}},
 		"yaml_config":           schema.StringAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-		"assistants":            schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow assistant array.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-		"tools":                 schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow tool array.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-		"states":                schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow state array.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
+		"assistants":            schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow assistant array."},
+		"tools":                 schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow tool array."},
+		"states":                schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON workflow state array."},
 		"supervisor_prompt":     schema.StringAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
 		"meta_config":           schema.StringAttribute{Optional: true, Computed: true, PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
-		"guardrail_assignments": schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON guardrail assignment array.", PlanModifiers: []planmodifier.String{stringplanmodifier.UseStateForUnknown()}},
+		"guardrail_assignments": schema.StringAttribute{Optional: true, Computed: true, CustomType: jsontypes.NormalizedType{}, Description: "JSON guardrail assignment array."},
 	}}
 }
 func (m *workflowModel) createRequest(id string) *client.CreateWorkflowRequest {
