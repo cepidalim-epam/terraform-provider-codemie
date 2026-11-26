@@ -64,7 +64,7 @@ The live deployment's tool configuration schema exposed these fields. Required f
 
 - **Jira:** `url`, `token`, and `is_cloud`; username/authentication fields may be needed by other configurations.
 - **Git:** `url` and `token`; `auth_type`, `access_token`, `refresh_token`, or host-specific fields may be needed.
-- **Webhook:** `webhook_id` and `is_enabled`; resource and secure-header fields are optional integration settings.
+- **Webhook:** `webhook_id`, `is_enabled`, `resource_type`, and `resource_id`; secure-header fields are optional integration settings.
 - **MCP:** `url`; this is a credential record, not an MCP catalog server definition.
 - **Scheduler:** `is_enabled`, `schedule`, `timezone`, `resource_type`, and `resource_id`.
 - **OpenAPI:** `openapi_spec`; `is_basic_auth`, `openapi_username`, `openapi_api_key`, `auth_header_name`, and `timeout` are available.

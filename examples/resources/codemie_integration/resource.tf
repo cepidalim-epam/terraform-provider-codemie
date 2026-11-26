@@ -56,6 +56,8 @@ resource "codemie_integration" "webhook" {
   credential_values = jsonencode([
     { key = "webhook_id", value = "example-webhook-id" },
     { key = "is_enabled", value = true },
+    { key = "resource_type", value = "workflow" },
+    { key = "resource_id", value = "example-workflow-id" },
   ])
 }
 

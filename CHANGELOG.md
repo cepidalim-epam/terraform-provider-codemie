@@ -18,3 +18,6 @@
 ## 0.3.0 - Released
 - Added user- and project-scoped integration resources for Webhook, MCP, Scheduler, Jira, OpenAPI, and Git, including import support.
 - Added an integration module, examples, and documentation.
+
+## 0.3.1 - Unreleased
+- Documented the required resource type and ID for webhook integrations.
