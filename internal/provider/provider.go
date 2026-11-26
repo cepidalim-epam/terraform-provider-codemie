@@ -39,7 +39,7 @@ func (p *CodemieProvider) Metadata(_ context.Context, _ provider.MetadataRequest
 func (p *CodemieProvider) Schema(_ context.Context, _ provider.SchemaRequest, resp *provider.SchemaResponse) {
 	nonEmpty := []validator.String{stringvalidator.LengthAtLeast(1)}
 	resp.Schema = schema.Schema{
-		Description: "Manage CodeMie assistants, workflows, and skills.",
+		Description: "Manage CodeMie assistants, workflows, skills, and integrations.",
 		Attributes: map[string]schema.Attribute{
 			"host":          schema.StringAttribute{Optional: true, Description: "CodeMie API base URL. May be set with CODEMIE_HOST.", Validators: nonEmpty},
 			"token_url":     schema.StringAttribute{Optional: true, Description: "OAuth2 token endpoint. May be set with CODEMIE_TOKEN_URL.", Validators: nonEmpty},
@@ -100,7 +100,7 @@ func envSuffix(name string) string {
 }
 
 func (p *CodemieProvider) Resources(_ context.Context) []func() resource.Resource {
-	return []func() resource.Resource{NewAssistantResource, NewWorkflowResource, NewSkillResource}
+	return []func() resource.Resource{NewAssistantResource, NewWorkflowResource, NewSkillResource, NewIntegrationResource}
 }
 
 func (p *CodemieProvider) DataSources(context.Context) []func() datasource.DataSource { return nil }

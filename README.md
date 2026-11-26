@@ -1,6 +1,6 @@
 # CodeMie Terraform Provider
 
-Terraform provider for managing CodeMie assistants, workflows, and skills through the CodeMie REST API.
+Terraform provider for managing CodeMie assistants, workflows, skills, and integrations through the CodeMie REST API.
 
 - **GitHub Repository:** `https://github.com/cepidalim-epam/terraform-provider-codemie`
 - **Terraform Registry:** `cepidalim-epam/codemie`
@@ -50,6 +50,27 @@ export CODEMIE_CLIENT_SECRET="secret"
 ```
 
 > **Security Note:** Never commit client secrets to version control.
+
+## Integrations
+
+The `codemie_integration` resource manages saved user- or project-scoped credentials for `Webhook`, `MCP`, `Scheduler`, `Jira`, `OpenAPI`, and `Git`. Supply `credential_values` as a JSON array of key/value objects; the provider ensures an `alias` entry matches the resource alias. Integration-specific fields depend on the CodeMie deployment.
+
+```hcl
+resource "codemie_integration" "jira" {
+  scope           = "project"
+  project_name    = "Engineering"
+  alias           = "jira-main"
+  credential_type = "Jira"
+
+  credential_values = jsonencode([
+    { key = "url", value = "https://company.atlassian.net" },
+    { key = "token", value = var.jira_token },
+    { key = "is_cloud", value = true },
+  ])
+}
+```
+
+`credential_values` is sensitive, but Terraform state still contains the configured values. Protect the state backend and use scope-qualified import IDs such as `project/<id>` or `user/<id>`. CodeMie masks secrets on reads, so Terraform preserves configured credentials and cannot detect out-of-band credential changes. See [the integration resource docs](docs/resources/integration.md) for import and examples.
 
 ---
 

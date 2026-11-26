@@ -180,6 +180,9 @@ func (c *Client) doJSON(ctx context.Context, method, path string, body any, out 
 	}
 
 	if resp.StatusCode < 200 || resp.StatusCode >= 300 {
+		if strings.HasPrefix(path, settingsPath) {
+			return &APIError{StatusCode: resp.StatusCode, Body: "integration API request failed"}
+		}
 		apiErr := &APIError{StatusCode: resp.StatusCode, Body: string(respBody)}
 		if resp.StatusCode == http.StatusUnprocessableEntity {
 			var validation HTTPValidationError
@@ -192,6 +195,9 @@ func (c *Client) doJSON(ctx context.Context, method, path string, body any, out 
 
 	if out != nil && len(respBody) > 0 {
 		if err := json.Unmarshal(respBody, out); err != nil {
+			if strings.HasPrefix(path, settingsPath) {
+				return fmt.Errorf("client: decode integration response: invalid JSON")
+			}
 			return fmt.Errorf("client: decode response body: %w (body=%s)", err, string(respBody))
 		}
 	}

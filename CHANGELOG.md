@@ -14,3 +14,7 @@
 
 ## 0.2.1 - Released
 - Fixed inconsistent workflow state after API updates by allowing refreshed JSON graph fields and guardrail assignments to be recorded.
+
+## 0.3.0 - Released
+- Added user- and project-scoped integration resources for Webhook, MCP, Scheduler, Jira, OpenAPI, and Git, including import support.
+- Added an integration module, examples, and documentation.
